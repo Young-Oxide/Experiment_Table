@@ -8,12 +8,12 @@ const double t_095_sqrt_n[11]={0,0,0,2.48,1.59,1.204,1.05,0.926,0.834,0.770,0.71
 
 ## class Var:
 static void changeTimes(int TIMES)  
-double Average();
-double Standard_Deviation();
-double Delta_A();误
-double Uncertainty();不 
-void OriginalData();原  
-void ShowAll();
+double Average();  
+double Standard_Deviation();  
+double Delta_A();  
+double Uncertainty();   
+void OriginalData();   
+void ShowAll();  
 **All Output lines of MarkDown Table**
 
 ## class AddVar
@@ -28,7 +28,8 @@ Table();
 
 Table(int VAR_CNT,int EXP_TIMES);  
 void Initialize(int VAR_CNT = 3,int EXP_TIMES = 5);  
-**Asks the name, unit, \Delta B and values of Variables**
+**Asks the name, unit, \Delta B and values of Variables**  
+**if input DeltaB as -1, consider the variable is only measured once**
 
 void all_Original_Data();  
 **Show all original Datas**
