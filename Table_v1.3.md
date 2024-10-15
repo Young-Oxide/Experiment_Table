@@ -28,7 +28,8 @@ Table();
 Table(int VAR_CNT,int EXP_TIMES);  
 void Initialize(int VAR_CNT = 3,int EXP_TIMES = 5);  
 会自动询问所有变量的信息  
-依次是变量的名称单位deltaB，以及每一次实验的数据  
+依次是变量的名称单位$\Delta B$，以及每一次实验的数据  
+如果输入的$\Delta B$为-1，则认为是只测量一次的变量   
 名称最大40字符，单位最大10字符，支持markdown语法  
 
 void all_Original_Data();  
