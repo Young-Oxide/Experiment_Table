@@ -50,7 +50,6 @@ class Table{
 	int VarCnt_;
 public:
 	std::vector<Var*> Vars_;
-	//NEVER USE THIS! SB STD!
 	Table();
 	Table(int VAR_CNT,int EXP_TIMES);
 	~Table();
