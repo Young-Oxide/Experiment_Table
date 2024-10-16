@@ -1,7 +1,7 @@
 #ifndef EXP_TABLE_TABLE_H
 #define EXP_TABLE_TABLE_H
 
-//version 1.3.1
+//version 1.4
 
 #include<iostream>
 #include<cmath>
@@ -26,12 +26,14 @@ public:
     virtual ~Var();
     static void changeTimes(int TIMES){ Var::VarTimes_ = TIMES;	}
     
+    double Maxium();
 	double Average();
 	double Standard_Deviation();
 	double Delta_A();
 	virtual double Uncertainty();
 	void OriginalData();
 	virtual void ShowAll();
+	virtual void AllPartial(const std::vector<Var*>& V,int VarNum);
 };
 class AddVar : public Var{
 	double Ucr_;//Uncertainty
@@ -43,6 +45,7 @@ public:
 	void calc(const std::vector<Var*>& OriginalValue, int VarNum);
 	double Uncertainty();
 	void ShowAll();
+	void AllPartial(const std::vector<Var*>& V,int VarNum);
 };
 
 class Table{
@@ -50,6 +53,7 @@ class Table{
 	int VarCnt_;
 public:
 	std::vector<Var*> Vars_;
+	//NEVER USE THIS! SB STD!
 	Table();
 	Table(int VAR_CNT,int EXP_TIMES);
 	~Table();
@@ -100,6 +104,12 @@ Var::~Var(){
     if(Unit_) delete Unit_;
     if(Value_) delete Value_;
 }
+double Var::Maxium(){
+	double ans = 0;
+	for(int i=0; i<this->VarTimes_; i++)
+		if(this->Value_[i] > ans) ans = this->Value_[i];
+	return ans;
+}
 double Var::Average(){
 	double ans=0;
 	for(int i=0;i<VarTimes_;i++)
@@ -137,7 +147,13 @@ void Var::ShowAll(){
 	if(this->DeltaB_!=-1) std::cout<<" "<<this->DeltaB_<<" | ";
 	else std::cout<<" 0 |";
 	std::cout<<" "<<this->Uncertainty()<<" | ";
+	
+	std::cout<<std::fixed<<std::setprecision(3);
 	std::cout<<" "<<this->Uncertainty() * 100/ this->Average()<<"$\\\%$ |\n";
+	std::cout<<std::scientific<<std::setprecision(3);
+}
+void Var::AllPartial(const std::vector<Var*>& V,int VarNum){
+	std::cout<<"For Var:"<<this->Name_<<", it is not a calculated value, no partial derivitive for it.";
 }
 
 AddVar::AddVar(char* NAME, char* UNIT,int VarNum, double(*FUNCTION)(double* V,int VarNum)):Var(NAME,UNIT){
@@ -162,25 +178,24 @@ void AddVar::calc(const std::vector<Var*>& OriginalValue,int VarNum){
 	double sum=0;
 	for(int i = 0; i < VarNum; i++)
 		sum+=pow(this->partial_derivative(OriginalValue,i,VarNum) *
-		 OriginalValue[i]->Uncertainty() / OriginalValue[i]->Average(),2);
+			OriginalValue[i]->Uncertainty() ,2);
 	this->Ucr_ = sqrt(sum);
 	this->OriginalData();
 }
 double AddVar::partial_derivative(const std::vector<Var*>& V, int Var_i,int VarNum){//dF/d{x_i}|x=x\bar
-
 	double* tempA=new double[VarNum];
 	//store all tempVars' Value at Exp.t in tempD 
-	for(int i=0;i<VarNum;i++)
+	for(int i=0;i<VarNum;i++){
 		tempA[i] = V[i]->Average();
+	}
 	double F0 = func(tempA, VarNum);
 
-	const double stepLength = 0.00001;
-	tempA[Var_i]+=stepLength;
+	tempA[Var_i]+=V[Var_i]->Maxium()/100;
 	double F1 = func(tempA, VarNum);
 	
 	delete tempA;
 	
-	return (F1 - F0)/stepLength;
+	return (F1 - F0)/(V[Var_i]->Maxium()/100);
 }
 double AddVar::Uncertainty(){
 	return Ucr_ * this->Average();
@@ -192,7 +207,28 @@ void AddVar::ShowAll(){
 	std::cout<<" "<<"---"<<" | ";
 	std::cout<<" "<<"---"<<" | ";
 	std::cout<<" "<<this->Ucr_ * this->Average()<<" | ";
+	
+	std::cout<<std::fixed<<std::setprecision(3);
 	std::cout<<" "<<this->Ucr_ * 100<<"$\\\%$ |\n";
+	std::cout<<std::scientific<<std::setprecision(3);
+}
+void AddVar::AllPartial(const std::vector<Var*>& V,int VarNum){
+	
+	std::cout<<"|    |";
+	for(int i=0;i<VarNum;i++)
+		std::cout<<"$\\partial_{"<<V[i]->Name_<<"}"<<this->Name_<<"$|";
+	std::cout<<"\n";
+	
+	
+	std::cout<<"|----|";
+	for(int i=0;i<VarNum;i++)
+		std::cout<<"----|";
+	std::cout<<"\n";
+	
+	std::cout<<"| $"<<this->Name_<<"/"<<this->Unit_<<"$| ";
+	for(int i=0;i<VarNum;i++)
+		std::cout<<this->partial_derivative(V,i,VarNum)<<" |";
+	std::cout<<"\n";
 }
 
 Table::Table(){
@@ -218,7 +254,7 @@ void Table::Initialize(int VAR_CNT,int EXP_TIMES){
 	Var::changeTimes(EXP_TIMES);
     
 	//set standard output
-	std::cout<<std::fixed<<std::setprecision(3);
+	std::cout<<std::scientific<<std::setprecision(3);
 	
 	//initialize Vars_
 	if(!Vars_.empty()) Vars_.clear();
