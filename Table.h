@@ -1,7 +1,7 @@
 #ifndef EXP_TABLE_TABLE_H
 #define EXP_TABLE_TABLE_H
 
-//version 1.4
+//version 1.4.1
 
 #include<iostream>
 #include<cmath>
@@ -189,13 +189,19 @@ double AddVar::partial_derivative(const std::vector<Var*>& V, int Var_i,int VarN
 		tempA[i] = V[i]->Average();
 	}
 	double F0 = func(tempA, VarNum);
-
-	tempA[Var_i]+=V[Var_i]->Maxium()/100;
+	
+	double stepLength = V[Var_i]->Average()/100;
+	if(stepLength == 0) stepLength = V[Var_i]->Maxium()/100;
+	if(stepLength == 0 ) return 0;
+	
+	tempA[Var_i]+=stepLength;
 	double F1 = func(tempA, VarNum);
 	
 	delete tempA;
 	
-	return (F1 - F0)/(V[Var_i]->Maxium()/100);
+//	std::cout<<"F1="<<F1<<",F0="<<F0<<"/Avr="<<V[Var_i]->Average()/100<<"\n";
+	
+	return (F1 - F0)/(stepLength);
 }
 double AddVar::Uncertainty(){
 	return Ucr_ * this->Average();
@@ -228,7 +234,7 @@ void AddVar::AllPartial(const std::vector<Var*>& V,int VarNum){
 	std::cout<<"| $"<<this->Name_<<"/"<<this->Unit_<<"$| ";
 	for(int i=0;i<VarNum;i++)
 		std::cout<<this->partial_derivative(V,i,VarNum)<<" |";
-	std::cout<<"\n";
+	std::cout<<"\n\n";
 }
 
 Table::Table(){
