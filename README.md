@@ -1,3 +1,4 @@
+## Turn to file "table_vX.XX" for a Chinese version
 ## include header:
 ``` cpp
 #include<cmath>  
@@ -10,28 +11,19 @@
 const double t_095_sqrt_n[11]={0,0,0,2.48,1.59,1.204,1.05,0.926,0.834,0.770,0.715};
 ``` 
 
-## class Var:
-``` cpp
-static void changeTimes(int TIMES);
-double Average();  
-double Standard_Deviation();  
-double Delta_A();  
-double Uncertainty();   
-void OriginalData();   
-void ShowAll();  
-```
-
-**All Output lines of MarkDown Table**
+## defining two basic classes: ` Var ` and ` AddVar ` 
 
 ## class AddVar
-have a function : calc(const std::vector<Var*>& OriginalValue, int VarNum)  
-used to initialize, no input or output
+have public functions :  
+`void calc(const std::vector<Var*>& OriginalValue, int VarNum)`  No output, used to initialize  
+`void AllPartial(const std::Vector<Var*>& V, int VarNum` Form a table calculating all partial derivatives
 
 ## Class Table
 ``` cpp
 std::vector<Var*> Vars_;
+//a public attribute
 
-Table();  
+Table();
 //It will automatically ask the times and Variable numbers
 
 Table(int VAR_CNT,int EXP_TIMES);  
@@ -49,13 +41,19 @@ void add_Var(char* NAME, char* UNIT, double(*FUNCTION)(double* V, int VarNum));
 //add a new variable
 ```
 
-## To get a certian Variable, use `<TableObjectName>Vars_[i]` returning a pointer `Var*` 
+**To get a certian Variable, use `<TableObjectName>.Vars_[i]` returning a pointer `Var*`** 
 
-## add if U need to output in files, add the following code
+## add following code to output in files
 ``` cpp
-Table t1;  
-freopen("data.md","w",stdout);  
-//main code
+Table t1;
+
+//addVar here if needed
+
+freopen("data.md","w",stdout);
+
+//main code for output
+
 fclose(stdout);  
 ```
 
+## for more information, see "Demo"
