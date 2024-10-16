@@ -1,7 +1,7 @@
 #ifndef EXP_TABLE_TABLE_H
 #define EXP_TABLE_TABLE_H
 
-//version 1.4.1
+//version 1.4.2
 
 #include<iostream>
 #include<cmath>
@@ -179,7 +179,7 @@ void AddVar::calc(const std::vector<Var*>& OriginalValue,int VarNum){
 	for(int i = 0; i < VarNum; i++)
 		sum+=pow(this->partial_derivative(OriginalValue,i,VarNum) *
 			OriginalValue[i]->Uncertainty() ,2);
-	this->Ucr_ = sqrt(sum);
+	this->Ucr_ = sqrt(sum); 
 	this->OriginalData();
 }
 double AddVar::partial_derivative(const std::vector<Var*>& V, int Var_i,int VarNum){//dF/d{x_i}|x=x\bar
@@ -190,8 +190,8 @@ double AddVar::partial_derivative(const std::vector<Var*>& V, int Var_i,int VarN
 	}
 	double F0 = func(tempA, VarNum);
 	
-	double stepLength = V[Var_i]->Average()/100;
-	if(stepLength == 0) stepLength = V[Var_i]->Maxium()/100;
+	double stepLength = V[Var_i]->Average()/10000;
+	if(stepLength == 0) stepLength = V[Var_i]->Maxium()/10000;
 	if(stepLength == 0 ) return 0;
 	
 	tempA[Var_i]+=stepLength;
@@ -212,11 +212,11 @@ void AddVar::ShowAll(){
 	std::cout<<" "<<this->Standard_Deviation()<<" | ";
 	std::cout<<" "<<"---"<<" | ";
 	std::cout<<" "<<"---"<<" | ";
-	std::cout<<" "<<this->Ucr_ * this->Average()<<" | ";
+	std::cout<<" "<<this->Ucr_ <<" | ";
 	
 	std::cout<<std::fixed<<std::setprecision(3);
-	std::cout<<" "<<this->Ucr_ * 100<<"$\\\%$ |\n";
-	std::cout<<std::scientific<<std::setprecision(3);
+	std::cout<<" "<<this->Ucr_ / this->Average() * 100<<"$\\\%$ |\n";
+	std::cout<<std::scientific<<std::setprecision(4);
 }
 void AddVar::AllPartial(const std::vector<Var*>& V,int VarNum){
 	
