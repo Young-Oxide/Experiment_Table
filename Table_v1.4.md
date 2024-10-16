@@ -23,7 +23,8 @@ void ShowAll();计算结果，用于Table::calc_All()
 ``` 
 
 ## 派生出AddVar类，拥有相同功能
-增加 `calc(const std::vector<Var*>& OriginalValue, int VarNum)` 用于初始化，无返回值和输出
+增加 `calc(const std::vector<Var*>& OriginalValue, int VarNum)` 用于初始化，无返回值和输出  
+新添加函数 `void AllPartial(const std::vector<Var*>& V,int VarNum)` ,用于输出对应于此变量的所有偏导数
 
 # 类Table拥有一个公有的vector对象，存储了各个变量的数据
 ``` cpp
