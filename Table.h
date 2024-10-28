@@ -1,15 +1,26 @@
 #ifndef EXP_TABLE_TABLE_H
 #define EXP_TABLE_TABLE_H
 
-//version 1.4.2
-
+//version 1.4.4
+/*1.4.3
+ * add double Precision_Of_Output_
+ */
+/*1.4.4
+ * improve t_0.95_sqrt_n to fit a wider range(20 times)
+ * add double* Var::Show_Value, returning the Var::Value_
+ * fix the 'vartime' problem caused by multiple tables
+ */
 #include<iostream>
 #include<cmath>
 #include<iomanip>
 #include<vector>
 #include<cstring>
 
-const double t_095_sqrt_n[11]={0,0,0,2.48,1.59,1.204,1.05,0.926,0.834,0.770,0.715};
+const double t_095_sqrt_n[21]={0,
+0, 0, 2.48, 1.59, 1.204,
+1.05, 0.926, 0.843, 0.770,
+0.715, 0.715, 0.715, 0.553, 0.553, 
+0.553, 0.553, 0.553, 0.467, 0.467};
 
 class Var{
 	friend class AddVar;
@@ -26,13 +37,17 @@ public:
     virtual ~Var();
     static void changeTimes(int TIMES){ Var::VarTimes_ = TIMES;	}
     
+    double* Show_Value(){
+    	return Value_;
+	}
+    
     double Maxium();
 	double Average();
 	double Standard_Deviation();
 	double Delta_A();
 	virtual double Uncertainty();
-	void OriginalData();
-	virtual void ShowAll();
+	void OriginalData(int VARTIMES = VarTimes_);
+	virtual void ShowAll(int VARTIMES = VarTimes_);
 	virtual void AllPartial(const std::vector<Var*>& V,int VarNum);
 };
 class AddVar : public Var{
@@ -44,9 +59,11 @@ public:
 	~AddVar();
 	void calc(const std::vector<Var*>& OriginalValue, int VarNum);
 	double Uncertainty();
-	void ShowAll();
+	void ShowAll(int VARTIMES = VarTimes_);
 	void AllPartial(const std::vector<Var*>& V,int VarNum);
 };
+
+int Precision_Of_Output_ = 3;
 
 class Table{
 	int ExpTimes_;
@@ -55,9 +72,9 @@ public:
 	std::vector<Var*> Vars_;
 	//NEVER USE THIS! SB STD!
 	Table();
-	Table(int VAR_CNT,int EXP_TIMES);
+	Table(int VAR_CNT,int EXP_TIMES,int PRECISION = 3);
 	~Table();
-	void Initialize(int VAR_CNT = 3,int EXP_TIMES = 5);
+	void Initialize(int VAR_CNT = 3,int EXP_TIMES = 5, int PRECISION = 3);
 	void all_Original_Data();
 	void calc_All();
 	void add_Var(char* NAME, char* UNIT, double(*FUNCTION)(double* V, int VarNum));
@@ -132,14 +149,17 @@ double Var::Uncertainty(){
 //	if(this->DeltaB_ == -1) return 0;
     return sqrt(pow(this->Delta_A(),2)+pow(this->DeltaB_,2));
 }
-void Var::OriginalData(){
+void Var::OriginalData(int VARTIMES){
+	Var::VarTimes_ = VARTIMES;
 	std::cout<<"| $";
 	std::cout<<this->Name_<<"/"<<this->Unit_<<" $|";
-	for(int i=0;i<VarTimes_;i++)
+	for(int i=0;i<VARTIMES;i++)
 		std::cout<<" $"<<this->Value_[i]<<"$ |";
 	std::cout<<"\n";
 }
-void Var::ShowAll(){
+void Var::ShowAll(int VARTIMES){
+	Var::VarTimes_ = VARTIMES;
+	
 	std::cout<<"| $"<<Name_<<"/"<<Unit_<<"$ |";
 	std::cout<<" "<<this->Average()<<" | ";
 	std::cout<<" "<<this->Standard_Deviation()<<" | ";
@@ -150,7 +170,7 @@ void Var::ShowAll(){
 	
 	std::cout<<std::fixed<<std::setprecision(3);
 	std::cout<<" "<<this->Uncertainty() * 100/ this->Average()<<"$\\\%$ |\n";
-	std::cout<<std::scientific<<std::setprecision(3);
+	std::cout<<std::scientific<<std::setprecision(Precision_Of_Output_);
 }
 void Var::AllPartial(const std::vector<Var*>& V,int VarNum){
 	std::cout<<"For Var:"<<this->Name_<<", it is not a calculated value, no partial derivitive for it.";
@@ -206,7 +226,8 @@ double AddVar::partial_derivative(const std::vector<Var*>& V, int Var_i,int VarN
 double AddVar::Uncertainty(){
 	return Ucr_ * this->Average();
 }
-void AddVar::ShowAll(){
+void AddVar::ShowAll(int VARTIMES){
+	Var::VarTimes_ = VARTIMES;
 	std::cout<<"| $"<<Name_<<"/"<<Unit_<<"$ |";
 	std::cout<<" "<<this->Average()<<" | ";
 	std::cout<<" "<<this->Standard_Deviation()<<" | ";
@@ -216,7 +237,7 @@ void AddVar::ShowAll(){
 	
 	std::cout<<std::fixed<<std::setprecision(3);
 	std::cout<<" "<<this->Ucr_ / this->Average() * 100<<"$\\\%$ |\n";
-	std::cout<<std::scientific<<std::setprecision(4);
+	std::cout<<std::scientific<<std::setprecision(Precision_Of_Output_);
 }
 void AddVar::AllPartial(const std::vector<Var*>& V,int VarNum){
 	
@@ -249,18 +270,19 @@ Table::~Table(){//delete all var
 		delete (*i);
 	Vars_.clear();
 }
-Table::Table(int VAR_CNT,int EXP_TIMES){
-	this->Initialize(VAR_CNT, EXP_TIMES);
+Table::Table(int VAR_CNT,int EXP_TIMES,int PRECISION){
+	this->Initialize(VAR_CNT, EXP_TIMES, PRECISION);
 }
-void Table::Initialize(int VAR_CNT,int EXP_TIMES){
-		
+void Table::Initialize(int VAR_CNT,int EXP_TIMES,int PRECISION){
+	
 	//initialize all constants
 	VarCnt_ = VAR_CNT;
 	ExpTimes_ = EXP_TIMES;
+	Precision_Of_Output_ = PRECISION;
 	Var::changeTimes(EXP_TIMES);
     
 	//set standard output
-	std::cout<<std::scientific<<std::setprecision(3);
+	std::cout<<std::scientific<<std::setprecision(Precision_Of_Output_);
 	
 	//initialize Vars_
 	if(!Vars_.empty()) Vars_.clear();
@@ -273,6 +295,7 @@ void Table::Initialize(int VAR_CNT,int EXP_TIMES){
 //	std::cout<<"Init fin!";
 }
 void Table::all_Original_Data(){
+	
 	//first line
 	std::cout<<"\n|"<<"    "<<"|";
 	for(int t=0;t<ExpTimes_;t++) std::cout<<t+1<<"|";
@@ -282,7 +305,7 @@ void Table::all_Original_Data(){
 	std::cout<<"\n";
 	
 	for(std::vector<Var*>::iterator i = Vars_.begin(); i < Vars_.end() ; i++)
-		(*i)->OriginalData();
+		(*i)->OriginalData(this->ExpTimes_);
     std::cout<<"\n";
 }
 void Table::calc_All(){
@@ -290,7 +313,7 @@ void Table::calc_All(){
     std::cout<<"|----| ---- | ---- | ---- | ---- | ---- |---- |\n";
 	
 	for(std::vector<Var*>::iterator i = Vars_.begin(); i<Vars_.end(); i++)
-		(*i)->ShowAll();
+		(*i)->ShowAll(this->ExpTimes_);
 		
 	std::cout<<"\n";
 }
