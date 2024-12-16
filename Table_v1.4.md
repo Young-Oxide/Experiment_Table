@@ -16,7 +16,7 @@ const double t_095_sqrt_n[21]={0,
 
 # 类Var拥有私静态成员 VarTimes_
 ``` cpp
-static void changeTimes(int TIMES)
+static void changeTimes(int TIMES);
 double Average();平均数
 double Standard_Deviation();标准差
 double Delta_A();误差A
